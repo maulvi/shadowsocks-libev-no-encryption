@@ -601,7 +601,7 @@ rand_bytes(void *output, int len)
 const cipher_kt_t *
 get_cipher_type(int method)
 {
-    if (method <= TABLE || method >= CIPHER_NUM) {
+    if (method < TABLE || method >= CIPHER_NUM) {
         LOGE("get_cipher_type(): Illegal method");
         return NULL;
     }
@@ -656,7 +656,7 @@ get_digest_type(const char *digest)
 void
 cipher_context_init(cipher_ctx_t *ctx, int method, int enc)
 {
-    if (method <= TABLE || method >= CIPHER_NUM) {
+    if (method < TABLE || method >= CIPHER_NUM) {
         LOGE("cipher_context_init(): Illegal method");
         return;
     }
@@ -1068,7 +1068,10 @@ ss_encrypt(buffer_t *plain, enc_ctx_t *ctx, size_t capacity)
                 memmove(cipher->data + iv_len,
                         cipher->data + iv_len + padding, cipher->len);
             }
-        } else {
+        } else if(enc_method == RC4){
+			memcpy(cipher->data + iv_len, plain->data, plain->len);
+		}
+		else {
             err =
                 cipher_context_update(&ctx->evp,
                                       (uint8_t *)(cipher->data + iv_len),
@@ -1083,7 +1086,7 @@ ss_encrypt(buffer_t *plain, enc_ctx_t *ctx, size_t capacity)
         dump("PLAIN", plain->data, plain->len);
         dump("CIPHER", cipher->data + iv_len, cipher->len);
 #endif
-
+		
         brealloc(plain, iv_len + cipher->len, capacity);
         memcpy(plain->data, cipher->data, iv_len + cipher->len);
         plain->len = iv_len + cipher->len;
@@ -1227,7 +1230,9 @@ ss_decrypt(buffer_t *cipher, enc_ctx_t *ctx, size_t capacity)
             if (padding) {
                 memmove(plain->data, plain->data + padding, plain->len);
             }
-        } else {
+        } else if(enc_method == RC4){
+			memcpy(plain->data, cipher->data + iv_len, cipher->len - iv_len);
+		} else {
             err = cipher_context_update(&ctx->evp, (uint8_t *)plain->data, &plain->len,
                                         (const uint8_t *)(cipher->data + iv_len),
                                         cipher->len - iv_len);
@@ -1273,7 +1278,7 @@ enc_ctx_init(int method, enc_ctx_t *ctx, int enc)
 void
 enc_key_init(int method, const char *pass)
 {
-    if (method <= TABLE || method >= CIPHER_NUM) {
+    if (method < TABLE || method >= CIPHER_NUM) {
         LOGE("enc_key_init(): Illegal method");
         return;
     }

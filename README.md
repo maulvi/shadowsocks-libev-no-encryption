@@ -1,5 +1,10 @@
 # shadowsocks-libev
 
+## 
+
+Remove encrytion method by using rc4 instead of none method
+ 
+
 ## Intro
 
 [Shadowsocks-libev](https://shadowsocks.org) is a lightweight secured SOCKS5
