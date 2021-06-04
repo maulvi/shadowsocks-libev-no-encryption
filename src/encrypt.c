@@ -1049,9 +1049,9 @@ ss_encrypt(buffer_t *plain, enc_ctx_t *ctx, size_t capacity)
             ctx->init    = 1;
         }
 		
-		if (enc_method == RC4){
-			memcpy(cipher->data + iv_len, plain->data, plain->len);
-		}
+				if (enc_method == RC4){
+						memcpy(cipher->data + iv_len, plain->data, plain->len);
+				}
         else if (enc_method >= SALSA20) {
             int padding = ctx->counter % SODIUM_BLOCK_SIZE;
             brealloc(cipher, iv_len + (padding + cipher->len) * 2, capacity);
@@ -1211,9 +1211,9 @@ ss_decrypt(buffer_t *cipher, enc_ctx_t *ctx, size_t capacity)
             }
         }
 
-		if(enc_method == RC4){
-			memcpy(plain->data, cipher->data + iv_len, cipher->len - iv_len);
-		}
+				if(enc_method == RC4){
+						memcpy(plain->data, cipher->data + iv_len, cipher->len - iv_len);
+				}
         else if (enc_method >= SALSA20) {
             int padding = ctx->counter % SODIUM_BLOCK_SIZE;
             brealloc(plain, (plain->len + padding) * 2, capacity);
