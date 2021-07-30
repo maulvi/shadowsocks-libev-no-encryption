@@ -1,9 +1,8 @@
 # shadowsocks-libev-no-encryption
 
+Remove encryption method by using rc4 instead of none method
 ## 
 
-Remove encryption method by using rc4 instead of none method
- 
 # shadowsocks-libev
 
 ## Intro
