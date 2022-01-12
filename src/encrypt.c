@@ -1048,30 +1048,10 @@ ss_encrypt(buffer_t *plain, enc_ctx_t *ctx, size_t capacity)
             ctx->counter = 0;
             ctx->init    = 1;
         }
-		
-		if (enc_method == RC4){
+
+        if (enc_method >= SALSA20) {
 			memcpy(cipher->data + iv_len, plain->data, plain->len);
-		}
-        else if (enc_method >= SALSA20) {
-            int padding = ctx->counter % SODIUM_BLOCK_SIZE;
-            brealloc(cipher, iv_len + (padding + cipher->len) * 2, capacity);
-            if (padding) {
-                brealloc(plain, plain->len + padding, capacity);
-                memmove(plain->data + padding, plain->data, plain->len);
-                sodium_memzero(plain->data, padding);
-            }
-            crypto_stream_xor_ic((uint8_t *)(cipher->data + iv_len),
-                                 (const uint8_t *)plain->data,
-                                 (uint64_t)(plain->len + padding),
-                                 (const uint8_t *)ctx->evp.iv,
-                                 ctx->counter / SODIUM_BLOCK_SIZE, enc_key,
-                                 enc_method);
-            ctx->counter += plain->len;
-            if (padding) {
-                memmove(cipher->data + iv_len,
-                        cipher->data + iv_len + padding, cipher->len);
-            }
-		} 
+        } 
 		else {
             err =
                 cipher_context_update(&ctx->evp,
@@ -1211,29 +1191,8 @@ ss_decrypt(buffer_t *cipher, enc_ctx_t *ctx, size_t capacity)
             }
         }
 
-		if(enc_method == RC4){
-			memcpy(plain->data, cipher->data + iv_len, cipher->len - iv_len);
-		}
-        else if (enc_method >= SALSA20) {
-            int padding = ctx->counter % SODIUM_BLOCK_SIZE;
-            brealloc(plain, (plain->len + padding) * 2, capacity);
-
-            if (padding) {
-                brealloc(cipher, cipher->len + padding, capacity);
-                memmove(cipher->data + iv_len + padding, cipher->data + iv_len,
-                        cipher->len - iv_len);
-                sodium_memzero(cipher->data + iv_len, padding);
-            }
-            crypto_stream_xor_ic((uint8_t *)plain->data,
-                                 (const uint8_t *)(cipher->data + iv_len),
-                                 (uint64_t)(cipher->len - iv_len + padding),
-                                 (const uint8_t *)ctx->evp.iv,
-                                 ctx->counter / SODIUM_BLOCK_SIZE, enc_key,
-                                 enc_method);
-            ctx->counter += cipher->len - iv_len;
-            if (padding) {
-                memmove(plain->data, plain->data + padding, plain->len);
-            }
+        if (enc_method >= SALSA20) {
+            memcpy(plain->data, cipher->data + iv_len, cipher->len - iv_len);
         } 
 		else {
             err = cipher_context_update(&ctx->evp, (uint8_t *)plain->data, &plain->len,
